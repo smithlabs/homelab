@@ -71,6 +71,7 @@ def print_all_nodes(proxmox):
 
 # Function to print network information
 def print_network_info(proxmox, node):
+    # Parse command-line arguments
     logger = logging.getLogger(__name__)
     logger.debug("Retrieving network information for node: %s", node)
 
@@ -92,16 +93,19 @@ def main():
     parser.add_argument("--network-info", default=False, action="store_true", help="Retrieve network information")
     args = parser.parse_args()
 
+    # If no args are provided, print the help message
     if not any(vars(args).values()):
         parser.print_help()
         return
 
+    # Configure logger for detailed logging if debug mode is enabled
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
     logger = logging.getLogger(__name__)
 
     settings = get_settings()
 
+    # Create ProxmoxAPI instance using settings
     logger.debug("Connecting to Proxmox API...")
     proxmox = ProxmoxAPI(
         settings["proxmox_host"],
