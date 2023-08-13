@@ -40,7 +40,7 @@ This command-line tool allows you to interact with Proxmox using various command
     pip install -r requirements.txt
     ```
 
-### Virtual Envrionment
+### Virtual Environment
 4. It's recommended to use a virtual environment for better isolation:
     ```bash
     # Create a virtual environment
