@@ -70,6 +70,11 @@ def main():
     parser.add_argument("--nodes", default=False, action="store_true", help="List all nodes")
     args = parser.parse_args()
 
+    # If no args are provided, print the help message
+    if not any(vars(args).values()):
+        parser.print_help()
+        return
+
     # Configure logger for detailed logging if debug mode is enabled
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -95,4 +100,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

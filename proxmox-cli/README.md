@@ -23,23 +23,18 @@ This command-line tool allows you to interact with Proxmox using various command
     ```
 
 2. Create a `settings.yaml` file in the root directory with your Proxmox credentials and settings:
+    Example on a fresh out-of-the-box Proxmox install
     ```yaml
-    proxmox_host: "your-proxmox-hostname"
-    user: "your-username"
-    password: "your-password"
-    verify_ssl: false
+    proxmox_host: "proxmox.smithlabs.net"
+    user: "root@pam"
+    password: "MySecurePassword123!"
+    verify_ssl: False
     ```
     Make sure to protect the `settings.yaml` file to keep your credentials secure:
     ```bash
     chmod 600 settings.yaml
     ```
-
-3. Install the required Python packages using pip:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4. It's recommended to use a virtual environment for better isolation:
+3. It's recommended to use a virtual environment for better isolation:
     ```bash
     # Create a virtual environment
     python -m venv venv
