@@ -18,7 +18,7 @@ This command-line tool allows you to interact with Proxmox using various command
 ## Setup
 1. Clone this repository:
     ```bash
-    git clone https://github.com/yourusername/proxmox-cli.git
+    git clone https://github.com/smithlabs/proxmox-cli.git
     cd proxmox-cli
     ```
 
