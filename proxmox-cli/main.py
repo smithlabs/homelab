@@ -1,13 +1,16 @@
-import os
-import yaml
-import logging
-import requests_toolbelt
-import urllib3
-import argparse
-from proxmoxer import ProxmoxAPI
+# Import required libraries
+import os                 # For interacting with the operating system
+import yaml               # For parsing YAML files
+import logging            # For logging messages
+import requests_toolbelt  # For working with HTTP requests
+import urllib3            # For disabling SSL warnings
+import argparse           # For parsing command-line arguments
+from proxmoxer import ProxmoxAPI  # For interacting with Proxmox API
 
+# Disable SSL warnings
 urllib3.disable_warnings()
 
+# Function to retrieve Proxmox settings from settings.yaml file
 def get_settings():
     # Read settings from settings.yaml
     with open("settings.yaml", "r") as settings_file:
@@ -21,6 +24,7 @@ def get_settings():
 
     return settings
 
+# Function to print nodes and their associated virtual machines
 def print_nodes_and_vms(proxmox):
     logger = logging.getLogger(__name__)
 
@@ -30,6 +34,7 @@ def print_nodes_and_vms(proxmox):
             print(f"{vm['vmid']}. {vm['name']} => {vm['status']}")
     logger.info("Nodes and their associated virtual machines printed.")
 
+# Function to retrieve and print Proxmox users' information
 def get_users(proxmox):
     logger = logging.getLogger(__name__)
 
@@ -44,10 +49,12 @@ def get_users(proxmox):
         print("-" * 20)
     logger.info("Proxmox users printed.")
 
+# Function to retrieve all available nodes
 def get_all_nodes(proxmox):
     nodes = proxmox.nodes.get()
     return [node["node"] for node in nodes]
 
+# Function to print all available nodes
 def print_all_nodes(proxmox):
     logger = logging.getLogger(__name__)
 
@@ -62,6 +69,7 @@ def print_all_nodes(proxmox):
     else:
         print("No nodes found.")
 
+# Main function
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser()
