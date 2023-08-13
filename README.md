@@ -69,8 +69,9 @@ Run the `main.py` script with the desired flags to interact with Proxmox.
 - Retrieve and display network information for the specified target node:
     ```bash
     python main.py --network-info
-    ![python main.py --network-info screenshot](https://github.com/smithlabs/homelab/blob/main/assets/main_py_get_network_info.png?raw=true)
     ```
+  ![python main.py --network-info screenshot](https://github.com/smithlabs/homelab/blob/main/assets/main_py_get_network_info.png?raw=true)
+
 
 ## Author
 Sean Smith
