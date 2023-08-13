@@ -34,11 +34,13 @@ This command-line tool allows you to interact with Proxmox using various command
     chmod 600 settings.yaml
     ```
 
+### Pip Requirements
 3. Install the required Python packages using pip:
     ```bash
     pip install -r requirements.txt
     ```
 
+### Virtual Envrionment
 4. It's recommended to use a virtual environment for better isolation:
     ```bash
     # Create a virtual environment
