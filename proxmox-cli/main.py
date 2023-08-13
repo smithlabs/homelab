@@ -69,28 +69,39 @@ def print_all_nodes(proxmox):
     else:
         print("No nodes found.")
 
-# Main function
+# Function to print network information
+def print_network_info(proxmox, node):
+    logger = logging.getLogger(__name__)
+    logger.debug("Retrieving network information for node: %s", node)
+
+    # Get network information using Proxmox API
+    networks = proxmox.nodes(node).network.get()
+    for network in networks:
+        print("Network Information:")
+        for key, value in network.items():
+            print(f"{key}: {value}")
+        print("-" * 20)
+
+    logger.info("Network information printed.")
+
 def main():
-    # Parse command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", default=False, action="store_true", help="Enable debug mode")
     parser.add_argument("--users", default=False, action="store_true", help="Retrieve Proxmox users")
     parser.add_argument("--nodes", default=False, action="store_true", help="List all nodes")
+    parser.add_argument("--network-info", default=False, action="store_true", help="Retrieve network information")
     args = parser.parse_args()
 
-    # If no args are provided, print the help message
     if not any(vars(args).values()):
         parser.print_help()
         return
 
-    # Configure logger for detailed logging if debug mode is enabled
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
     logger = logging.getLogger(__name__)
 
     settings = get_settings()
 
-    # Create ProxmoxAPI instance using settings
     logger.debug("Connecting to Proxmox API...")
     proxmox = ProxmoxAPI(
         settings["proxmox_host"],
@@ -103,6 +114,8 @@ def main():
         get_users(proxmox)
     elif args.nodes:
         print_all_nodes(proxmox)
+    elif args.network_info:
+        print_network_info(proxmox, settings["target_node"])
     else:
         print_nodes_and_vms(proxmox)
 
