@@ -1,22 +1,20 @@
-# Import required libraries
-import os                 # For interacting with the operating system
-import yaml               # For parsing YAML files
-import logging            # For logging messages
-import requests_toolbelt  # For working with HTTP requests
-import urllib3            # For disabling SSL warnings
-import argparse           # For parsing command-line arguments
-from proxmoxer import ProxmoxAPI  # For interacting with Proxmox API
+import os
+import requests
+import yaml
+import logging
+import argparse
+from proxmoxer import ProxmoxAPI
+import urllib3
 
-# Disable SSL warnings
-urllib3.disable_warnings()
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger(__name__)
 
 # Function to retrieve Proxmox settings from settings.yaml file
 def get_settings():
-    # Read settings from settings.yaml
     with open("settings.yaml", "r") as settings_file:
         settings = yaml.safe_load(settings_file)
 
-    # Override settings with environment variables if set
     settings["proxmox_host"] = os.environ.get("PROXMOX_HOST", settings["proxmox_host"])
     settings["user"] = os.environ.get("PROXMOX_USER", settings["user"])
     settings["password"] = os.environ.get("PROXMOX_PASSWORD", settings["password"])
@@ -27,7 +25,6 @@ def get_settings():
 # Function to print nodes and their associated virtual machines
 def print_nodes_and_vms(proxmox):
     logger = logging.getLogger(__name__)
-
     logger.debug("Retrieving nodes and their associated virtual machines...")
     for node in proxmox.nodes.get():
         for vm in proxmox.nodes(node["node"]).qemu.get():
@@ -37,7 +34,6 @@ def print_nodes_and_vms(proxmox):
 # Function to retrieve and print Proxmox users' information
 def get_users(proxmox):
     logger = logging.getLogger(__name__)
-
     logger.debug("Retrieving Proxmox users...")
     users = proxmox.access.users.get()
     for user in users:
@@ -57,7 +53,6 @@ def get_all_nodes(proxmox):
 # Function to print all available nodes
 def print_all_nodes(proxmox):
     logger = logging.getLogger(__name__)
-
     logger.debug("Retrieving Proxmox nodes...")
     nodes = get_all_nodes(proxmox)
     if nodes:
@@ -71,42 +66,68 @@ def print_all_nodes(proxmox):
 
 # Function to print network information
 def print_network_info(proxmox, node):
-    # Parse command-line arguments
     logger = logging.getLogger(__name__)
     logger.debug("Retrieving network information for node: %s", node)
-
-    # Get network information using Proxmox API
     networks = proxmox.nodes(node).network.get()
     for network in networks:
         print("Network Information:")
         for key, value in network.items():
             print(f"{key}: {value}")
         print("-" * 20)
-
     logger.info("Network information printed.")
 
+# Function to retrieve Proxmox ticket
+def get_ticket(settings):
+    url = f"https://{settings['proxmox_host']}:8006/api2/json/access/ticket"
+    data = {
+        "username": settings["user"],
+        "password": settings["password"],
+    }
+    try:
+        response = requests.post(url, data=data, verify=settings["verify_ssl"])
+        response_data = response.json()
+        if "data" in response_data and "ticket" in response_data["data"]:
+            return response_data["data"]["ticket"]
+        else:
+            logger.error("Failed to get a valid ticket.")
+            return None
+    except requests.exceptions.RequestException as e:
+        logger.error("Error getting ticket: %s", e)
+        return None
+
+# Function to fetch and print available ISOs
+def get_isos(settings):
+    url = f"https://{settings['proxmox_host']}:8006/api2/json/nodes/{settings['target_node']}/storage/{settings['storage']}/content"
+    response = requests.get(url, headers={"Cookie": f"PVEAuthCookie={settings['ticket']}"}, verify=settings["verify_ssl"])
+    response_data = response.json()
+
+    if response.status_code != 200:
+        print(f"Failed to fetch ISOs. Status code: {response.status_code}")
+        return
+
+    print("Available ISOs:")
+    for iso in response_data.get("data", []):
+        print(f"ISO ID: {iso['volid']}")
+
+# Main function
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", default=False, action="store_true", help="Enable debug mode")
     parser.add_argument("--users", default=False, action="store_true", help="Retrieve Proxmox users")
     parser.add_argument("--nodes", default=False, action="store_true", help="List all nodes")
     parser.add_argument("--network-info", default=False, action="store_true", help="Retrieve network information")
+    parser.add_argument("--isos", default=False, action="store_true", help="Show ISOs available on the node")
     args = parser.parse_args()
 
-    # If no args are provided, print the help message
     if not any(vars(args).values()):
         parser.print_help()
         return
 
-    # Configure logger for detailed logging if debug mode is enabled
     log_level = logging.DEBUG if args.debug else logging.INFO
     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
     logger = logging.getLogger(__name__)
 
     settings = get_settings()
-
-    # Create ProxmoxAPI instance using settings
-    logger.debug("Connecting to Proxmox API...")
     proxmox = ProxmoxAPI(
         settings["proxmox_host"],
         user=settings["user"],
@@ -114,7 +135,11 @@ def main():
         verify_ssl=settings["verify_ssl"]
     )
 
-    if args.users:
+    if args.isos:
+        ticket = get_ticket(settings)
+        settings['ticket'] = ticket
+        get_isos(settings)
+    elif args.users:
         get_users(proxmox)
     elif args.nodes:
         print_all_nodes(proxmox)
